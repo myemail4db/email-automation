@@ -1,0 +1,27 @@
+# Python virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# macOS system files
+.DS_Store
+
+# Generated workflow folders (DO NOT COMMIT EMAIL DATA)
+input/
+jobs_to_review/
+jobs_ready_to_send/
+sent_archive/
+error/
+logs/
+
+# Generated files
+*.log
+*.zip
+
+# Optional: secrets / local config
+.env
+config.local.py
