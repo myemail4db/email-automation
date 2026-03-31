@@ -25,3 +25,6 @@ logs/
 # Optional: secrets / local config
 .env
 config.local.py
+token.json
+credentials.json
+*.secret.json
