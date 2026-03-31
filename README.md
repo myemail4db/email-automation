@@ -22,6 +22,7 @@ A Python-based automation tool that reads labeled emails from Gmail and exports 
   - [Usage](#usage)
   - [Workflow](#workflow)
   - [Output](#output)
+  - [Date Formatting (Cross-Platform)](#date-formatting-cross-platform)
   - [Testing Error Handling](#testing-error-handling)
   - [Troubleshooting](#troubleshooting)
     - [Missing module](#missing-module)
@@ -192,7 +193,7 @@ for_friend       → failure   → error
 Saved to:
 
 ```
-jobs_to_review/
+processed_review/
 ```
 
 Example:
@@ -204,6 +205,21 @@ Re New Remote Opportunity.docx
 ```
 
 Duplicate files are automatically renamed.
+
+---
+
+## Date Formatting (Cross-Platform)
+
+The application formats email timestamps into a human-readable format.
+
+Example:
+Tuesday, March 31, 2026, 10:16 AM
+
+Note:
+- macOS/Linux use "%-I" for hour formatting
+- Windows uses "%#I"
+
+This is handled automatically in the code using OS detection, so no manual changes are required.
 
 ---
 
@@ -247,7 +263,7 @@ Ensure labels exist:
 ```
 email-automation/
 ├── src/
-├── jobs_to_review/
+├── processed_review/
 ├── requirements.txt
 ├── run.py
 └── README.md
