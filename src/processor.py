@@ -68,18 +68,30 @@ def export_labeled_emails(format_type="text"):
             
             if format_type == "text":
                 saved_file_path = save_email_to_text(
-                    subject, sender, date, body, PATHS["jobs_to_review"]
+                    subject,
+                    sender,
+                    date,
+                    body,
+                    PATHS["processed_review"],
+                    status="processed_review",
+                    format_type="text"
                 )
             elif format_type == "word":
                 saved_file_path = save_email_to_word(
-                    subject, sender, date, body, PATHS["jobs_to_review"]
+                    subject,
+                    sender,
+                    date,
+                    body,
+                    PATHS["processed_review"],
+                    status="processed_review",
+                    format_type="word"
                 )
             else:
                 raise ValueError(f"Unsupported format_type: {format_type}")
 
             print(f"Saved: {saved_file_path}")
             results.append({
-                "status": "jobs_to_review",
+                "status": "processed_review",
                 "path": str(saved_file_path)
             })
 
@@ -114,5 +126,5 @@ def export_labeled_emails(format_type="text"):
 
             print(f"[ERROR] {msg_id}: {e}")
 
-    # ✅ ALWAYS print summary after processing all emails
+    # ALWAYS print summary after processing all emails
     print_export_summary(results)
