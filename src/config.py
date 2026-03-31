@@ -24,8 +24,8 @@ config = {
     },
     "local_folders": {
         "input": "input",
-        "jobs_to_review": "jobs_to_review",
-        "jobs_ready_to_send": "jobs_ready_to_send",
+        "processed_review": "processed_review",
+        "ready_to_send": "ready_to_send",
         "sent_archive": "sent_archive",
         "error": "error",
         "logs": "logs",
