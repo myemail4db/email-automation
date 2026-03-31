@@ -6,50 +6,86 @@ def clean_email_body(body: str) -> str:
     if not body:
         return ""
 
-    # Decode HTML entities like &lt; and &#39;
     text = html.unescape(body)
-
-    # Normalize line endings
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-    # Remove common mailer noise
-    noise_patterns = [
-        r"^Sent from Yahoo Mail.*$",
-        r"^Get Outlook for .*?$",
-        r"^CAUTION:.*$",
-    ]
-
     lines = text.split("\n")
-    filtered_lines = []
+    cleaned_lines = []
 
-    for line in lines:
+    i = 0
+    while i < len(lines):
+        line = lines[i]
         stripped = line.strip()
 
-        skip = False
-        for pattern in noise_patterns:
-            if re.match(pattern, stripped, flags=re.IGNORECASE):
-                skip = True
-                break
+        # --- CASE 1: Single-line reply marker ---
+        if re.match(r"^On .+ wrote:\s*$", stripped, re.IGNORECASE):
+            i += 1
+            continue
 
-        if not skip:
-            filtered_lines.append(line)
+        # --- CASE 2: Two-line reply marker ---
+        if (
+            re.match(r"^On .+$", stripped, re.IGNORECASE)
+            and i + 1 < len(lines)
+            and re.match(r"^wrote:\s*$", lines[i + 1].strip(), re.IGNORECASE)
+        ):
+            i += 2
+            continue
 
-    text = "\n".join(filtered_lines)
+        # --- Existing filters ---
+        if re.match(r"^Sent from Yahoo Mail.*$", stripped, re.IGNORECASE):
+            i += 1
+            continue
+        if re.match(r"^Get Outlook for .*?$", stripped, re.IGNORECASE):
+            i += 1
+            continue
+        if re.match(r"^CAUTION:.*$", stripped, re.IGNORECASE):
+            i += 1
+            continue
+        if re.match(r"^WARNING:.*$", stripped, re.IGNORECASE):
+            i += 1
+            continue
 
-    # Stop at common reply-chain markers
-    reply_markers = [
-        r"\nOn .* wrote:\n",
-        r"\nFrom: .*",
-        r"\n-----Original Message-----",
-    ]
+        cleaned_lines.append(line)
+        i += 1
 
-    for marker in reply_markers:
-        match = re.search(marker, text, flags=re.IGNORECASE)
-        if match:
-            text = text[:match.start()]
-            break
+    text = "\n".join(cleaned_lines)
 
-    # Collapse excessive blank lines
+    # Remove extra blank lines
     text = re.sub(r"\n{3,}", "\n\n", text)
+
+    # --- Remove Collabera-style confidentiality blocks ---
+    text = re.sub(
+        r"CONFIDENTIALITY NOTICE:.*?(?=\n\n|\Z)",
+        "",
+        text,
+        flags=re.IGNORECASE | re.DOTALL
+    )
+
+    # --- Remove feedback + privacy footer spam ---
+    text = re.sub(
+        r"How am I doing\?.*?(?=\n\n|\Z)",
+        "",
+        text,
+        flags=re.IGNORECASE | re.DOTALL
+    )
+
+    # --- Remove repeated CCPA / privacy notice clutter ---
+    text = re.sub(
+        r"(C)*P?A Privacy Notice.*?(?=\n\n|\Z)",
+        "",
+        text,
+        flags=re.IGNORECASE | re.DOTALL
+    )
+
+    # --- Clean up extra spacing again after removals ---
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    # --- Remove CyberCoders / Equal Opportunity employment block ---
+    text = re.sub(
+        r"All qualified applicants will receive consideration for employment.*?(?=\n\n|\Z)",
+        "",
+        text,
+        flags=re.IGNORECASE | re.DOTALL
+    )
 
     return text.strip()

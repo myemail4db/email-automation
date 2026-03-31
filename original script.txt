@@ -1,0 +1,63 @@
+^+u::  ; Ctrl + Shift + U hotkey
+{
+    ; --- Step 1: Select All ---
+    Send("^a")
+    Sleep(200)
+
+    ; --- Step 2: Copy ---
+    Send("^c")
+    if !ClipWait(2) {
+        MsgBox("Failed to copy text.")
+        return
+    }
+
+    Send("^c")
+    Sleep(200)
+
+    ; Store clipboard text
+    originalClipboard := A_Clipboard
+    text := A_Clipboard
+
+    ; --- Step 5 & 6: Remove unwanted phrases ---
+    text := StrReplace(text, "unsubscribe")
+    text := StrReplace(text, "logo")
+    text := StrReplace(text, "Using Gmail with screen readers")
+    text := StrReplace(text, "For Dominick")
+    text := StrReplace(text, "label:for-dominick")
+    text := StrReplace(text, "Skip to content")
+    text := StrReplace(text, " of 94")
+    text := StrReplace(text, "scrum. Press tab to insert.")
+    text := StrReplace(text, "   ", " ")
+    text := StrReplace(text, "Thanks & Regards", "Thanks and regards")
+    text := StrReplace(text, "Summarize this email")
+    text := StrReplace(text, " days ago)")
+    text := StrReplace(text, "intended solely for the addressee(s)")
+    text := StrReplace(text, "privacy")
+    text := StrReplace(text, "via mg2.ceipalmm.com")
+
+    ; -- Replace space + carriage return with just carriage return
+    text := RegExReplace(text, " +\r\n", "`r`n")
+
+    ; --- Remove three carriage returns and replace them with one ---
+    ; This replaces two or more blank lines with just one
+    text := RegExReplace(text, "(\r\n){3,}", "`r`n")
+
+    ; --- Step 3: Check if Notepad is open ---
+    if WinExist("ahk_exe notepad.exe")
+    {
+        WinActivate("ahk_exe notepad.exe")
+        WinWaitActive("ahk_exe notepad.exe")
+        Send("^n")   ; New document
+        Sleep(200)
+    }
+    else
+    {
+        Run("notepad.exe")
+        WinWaitActive("ahk_exe notepad.exe")
+    }
+
+    ; --- Step 4: Paste cleaned text ---
+    A_Clipboard := text
+    Sleep(100)
+    Send("^v")
+}

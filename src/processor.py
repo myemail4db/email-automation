@@ -3,13 +3,42 @@ from src.word_exporter import save_email_to_word
 from src.error_handler import move_file_to_error
 from src.config import PATHS, config
 from src.gmail_client import GmailClient
-from src.text_filter import clean_email_body
+from pathlib import Path
 import shutil
 import os
 
 TEST_ERROR_MODE = os.getenv("TEST_ERROR_MODE") == "true"
 
+def print_export_summary(results):
+    if not results:
+        print("\nNo files processed.\n")
+        return
+
+    col1 = "Email Status"
+    col2 = "Local File"
+
+    width1 = max(len(col1), *(len(item["status"]) for item in results))
+    width2 = max(len(col2), *(len(item["path"]) for item in results))
+
+    border = f"+-{'-' * width1}-+-{'-' * width2}-+"
+
+    print("\nExport Summary:\n")
+    print(border)
+    print(f"| {col1:<{width1}} | {col2:<{width2}} |")
+    print(border)
+
+    for item in results:
+        print(f"| {item['status']:<{width1}} | {item['path']:<{width2}} |")
+
+    print(border)
+    print()
+
 def export_labeled_emails(format_type="text"):
+    # Output results for summary table
+    # example: [{"status": "Success", "path": "/path/to/file.txt"}, 
+    #           {"status": "Error: <error message>", "path": "/path/to/error_file.txt"}]
+    results = []
+
     labels = config["labels"]
 
     input_label = labels["source"]
@@ -34,6 +63,9 @@ def export_labeled_emails(format_type="text"):
             date = email_data.get("date", "")
             body = email_data.get("body", "")
 
+            if TEST_ERROR_MODE:
+                raise Exception("Test error - forcing failure path")
+            
             if format_type == "text":
                 saved_file_path = save_email_to_text(
                     subject, sender, date, body, PATHS["jobs_to_review"]
@@ -46,9 +78,10 @@ def export_labeled_emails(format_type="text"):
                 raise ValueError(f"Unsupported format_type: {format_type}")
 
             print(f"Saved: {saved_file_path}")
-
-            if TEST_ERROR_MODE:
-                raise Exception("Test error - forcing failure path")
+            results.append({
+                "status": "jobs_to_review",
+                "path": str(saved_file_path)
+            })
 
             # success label handling
             gmail.modify_labels(
@@ -65,6 +98,10 @@ def export_labeled_emails(format_type="text"):
             if saved_file_path and os.path.exists(saved_file_path):
                 error_file_path = move_file_to_error(saved_file_path, PATHS["error"])
                 print(f"[ERROR] File moved to: {error_file_path}")
+                results.append({
+                    "status": "Error",
+                    "path": str(error_file_path)
+                })
             else:
                 print(f"[ERROR] No file was saved for message {msg_id}")
 
@@ -76,3 +113,6 @@ def export_labeled_emails(format_type="text"):
             )
 
             print(f"[ERROR] {msg_id}: {e}")
+
+    # ✅ ALWAYS print summary after processing all emails
+    print_export_summary(results)

@@ -1,3 +1,4 @@
+from src.text_filter import clean_email_body
 import os
 
 def save_email_to_text(subject, sender, date, body, output_dir):
@@ -19,6 +20,7 @@ def save_email_to_text(subject, sender, date, body, output_dir):
         f.write(f"From: {sender}\n")
         f.write(f"Date: {date}\n")
         f.write("\n" + "=" * 50 + "\n\n")
-        f.write(body)
+        cleaned_body = clean_email_body(body)
+        f.write(cleaned_body)
 
     return file_path
