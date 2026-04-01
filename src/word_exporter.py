@@ -1,28 +1,11 @@
 from src.text_filter import clean_email_body
+from src.utils.date_utils import format_email_date
 from docx import Document
 from docx.shared import Pt
 from pathlib import Path
-from datetime import datetime
 import os
+from datetime import datetime
 
-def format_email_date(date_str):
-    if not date_str:
-        return "Unknown Date"
-
-    try:
-        dt = datetime.fromisoformat(date_str)
-
-        # Cross-platform hour format
-        if os.name == "nt":  # Windows
-            hour_format = "%#I"
-        else:  # macOS/Linux
-            hour_format = "%-I"
-
-        return dt.strftime(f"%A, %B %d, %Y, {hour_format}:%M %p")
-
-    except Exception:
-        return date_str
-    
 def add_separator(doc, char="=", length=60):
     doc.add_paragraph(char * length)
 

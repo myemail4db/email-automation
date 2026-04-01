@@ -1,27 +1,9 @@
 from src.text_filter import clean_email_body
+from src.utils.date_utils import format_email_date
+import os
 from pathlib import Path
 from datetime import datetime
-import os
-
-
-def format_email_date(date_str):
-    if not date_str:
-        return "Unknown Date"
-
-    try:
-        dt = datetime.fromisoformat(date_str)
-
-        # Cross-platform hour format
-        if os.name == "nt":  # Windows
-            hour_format = "%#I"
-        else:  # macOS/Linux
-            hour_format = "%-I"
-
-        return dt.strftime(f"%A, %B %d, %Y, {hour_format}:%M %p")
-
-    except Exception:
-        return date_str
-    
+   
 def build_email_header(subject, sender, date, status, format_type, file_name):
     line = "=" * 60
 

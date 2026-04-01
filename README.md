@@ -19,7 +19,7 @@ A Python-based automation tool that reads labeled emails from Gmail and exports 
     - [3. Install dependencies](#3-install-dependencies)
     - [Gmail API Setup (Required)](#gmail-api-setup-required)
   - [Configuration](#configuration)
-  - [Usage](#usage)
+  - [Running the Application](#running-the-application)
   - [Workflow](#workflow)
   - [Output](#output)
   - [Date Formatting (Cross-Platform)](#date-formatting-cross-platform)
@@ -161,19 +161,21 @@ src/config.py
 }
 ```
 
-## Usage
+## Running the Application
 
-Run:
+Run the application from the project root using package mode:
 
 ```bash
-python3 run.py --format text
+python3 -m src.run --format text
 ```
 
 or
 
 ```bash
-python3 run.py --format word
+python3 -m src.run --format word
 ```
+
+This ensures Python resolves all src.* imports correctly.
 
 ---
 
@@ -262,11 +264,21 @@ Ensure labels exist:
 
 ```
 email-automation/
-├── src/
+├── src/  
 ├── processed_review/
 ├── requirements.txt
 ├── run.py
 └── README.md
+```
+
+```
+src/
+├── processor.py        # orchestration
+├── text_exporter.py    # output (text)
+├── word_exporter.py    # output (word)
+├── text_filter.py      # cleaning logic
+├── utils/
+│   └── date_utils.py   # shared utilities
 ```
 
 ---
