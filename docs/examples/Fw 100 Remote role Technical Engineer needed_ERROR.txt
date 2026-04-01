@@ -1,0 +1,11 @@
+============================================================
+ERROR EMAIL DETAILS
+============================================================
+Subject           : Fw: 100% Remote role! Technical Engineer needed
+From              : Dominick Benigno <dominickbenigno@yahoo.com>
+Date              : 2026-04-01T01:45:25+00:00
+Workflow Status   : error
+Export Format     : text
+Message ID        : 19d46b78db99b309
+Error             : Test error - forcing failure path
+============================================================

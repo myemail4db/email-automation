@@ -1,6 +1,7 @@
 from src.text_exporter import save_email_to_text
 from src.word_exporter import save_email_to_word
 from src.error_handler import move_file_to_error
+from src.utils.error_utils import create_error_report
 from src.config import PATHS, config
 from src.gmail_client import GmailClient
 from pathlib import Path
@@ -53,6 +54,11 @@ def export_labeled_emails(format_type="text"):
 
     for msg_id in message_ids:
         saved_file_path = None
+
+        subject = "Unknown Subject"
+        sender = "Unknown Sender"
+        date = ""
+        body = ""
 
         try:
             raw_message = gmail.get_message(msg_id)
@@ -115,7 +121,22 @@ def export_labeled_emails(format_type="text"):
                     "path": str(error_file_path)
                 })
             else:
-                print(f"[ERROR] No file was saved for message {msg_id}")
+                error_file_path = create_error_report(
+                    msg_id=msg_id,
+                    subject=subject,
+                    sender=sender,
+                    date=date,
+                    format_type=format_type,
+                    error_message=str(e),
+                    error_dir=PATHS["error"]
+                )
+
+                print(f"[ERROR] Error report created: {error_file_path}")
+
+                results.append({
+                    "status": "Error",
+                    "path": str(error_file_path)
+                })
 
             # error label handling
             gmail.modify_labels(

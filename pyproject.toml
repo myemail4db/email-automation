@@ -1,11 +1,22 @@
 [project]
 name = "email-automation"
-version = "1.0.0"
-description = "Gmail to Document Automation Tool"
+version = "0.1.0"
+description = "Gmail to document automation pipeline"
 authors = [
     { name = "Dominick Benigno" }
 ]
-dependencies = []
+requires-python = ">=3.10"
 
-[project.scripts]
-email_automation = "src.run:main"
+dependencies = [
+    "google-api-python-client",
+    "google-auth",
+    "google-auth-oauthlib",
+    "python-docx",
+    "python-dotenv"
+]
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

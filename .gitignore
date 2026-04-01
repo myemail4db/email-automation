@@ -10,10 +10,18 @@ __pycache__/
 # macOS system files
 .DS_Store
 
+# VS Code settings
+.vscode/
+
+# Build / packaging artifacts
+build/
+dist/
+*.egg-info/
+
 # Generated workflow folders (DO NOT COMMIT EMAIL DATA)
 input/
+processed_review/
 jobs_to_review/
-jobs_ready_to_send/
 sent_archive/
 error/
 logs/
