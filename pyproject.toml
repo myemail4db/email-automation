@@ -1,0 +1,11 @@
+[project]
+name = "email-automation"
+version = "1.0.0"
+description = "Gmail to Document Automation Tool"
+authors = [
+    { name = "Dominick Benigno" }
+]
+dependencies = []
+
+[project.scripts]
+email_automation = "src.run:main"
