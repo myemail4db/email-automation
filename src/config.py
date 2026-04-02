@@ -23,7 +23,6 @@ config = {
         "error": "for_friend/error",
     },
     "local_folders": {
-        "input": "input",
         "processed_review": "processed_review",
         "ready_to_send": "ready_to_send",
         "sent_archive": "sent_archive",

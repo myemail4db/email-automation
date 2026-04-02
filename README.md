@@ -16,8 +16,23 @@ A Python-based automation tool that reads labeled emails from Gmail and exports 
   - [Setup](#setup)
     - [1. Clone the repository](#1-clone-the-repository)
     - [2. Create virtual environment](#2-create-virtual-environment)
+      - [macOS / Linux](#macos--linux)
+      - [Windows (Command Prompt)](#windows-command-prompt)
+      - [Windows (PowerShell)](#windows-powershell)
     - [3. Install dependencies](#3-install-dependencies)
+      - [macOS / Linux](#macos--linux-1)
+      - [Windows](#windows)
     - [Gmail API Setup (Required)](#gmail-api-setup-required)
+  - [Part 1: Running the Application to convert emails to local word or text documents](#part-1-running-the-application-to-convert-emails-to-local-word-or-text-documents)
+      - [macOS / Linux](#macos--linux-2)
+      - [Windows](#windows-1)
+  - [Part 2: Running the Application to zip files and send emails](#part-2-running-the-application-to-zip-files-and-send-emails)
+      - [macOS / Linux](#macos--linux-3)
+      - [Windows](#windows-2)
+  - [Environment Variables](#environment-variables)
+    - [Create a `.env` file](#create-a-env-file)
+      - [macOS / Linux](#macos--linux-4)
+      - [Windows (File Explorer)](#windows-file-explorer)
   - [Configuration](#configuration)
     - [Gmail Labels](#gmail-labels)
     - [Local Folders](#local-folders)
@@ -25,6 +40,8 @@ A Python-based automation tool that reads labeled emails from Gmail and exports 
     - [Safety Settings](#safety-settings)
   - [Running the Application](#running-the-application)
   - [Workflow](#workflow)
+  - [Status](#status)
+  - [Internal Processing Flow](#internal-processing-flow)
   - [Email Cleaning Logic](#email-cleaning-logic)
   - [Output](#output)
     - [File Format](#file-format)
@@ -39,6 +56,7 @@ A Python-based automation tool that reads labeled emails from Gmail and exports 
   - [Troubleshooting](#troubleshooting)
     - [Missing module](#missing-module)
     - [Label not found](#label-not-found)
+    - [pip not working inside virtual environment](#pip-not-working-inside-virtual-environment)
   - [Project Structure](#project-structure)
   - [Future Enhancements](#future-enhancements)
   - [Author](#author)
@@ -98,9 +116,12 @@ All final implementation decisions were validated manually.
 
 ## Prerequisites
 
-- Python 3.10+
+- Python 3.10–3.12 recommended
 - Gmail account
 - Google Cloud project
+
+**Note:**
+Python 3.14 may cause compatibility issues with Google authentication and cryptography dependencies.
 
 ---
 
@@ -113,18 +134,46 @@ git clone <your-repo-url>
 cd email-automation
 ```
 
+---
+
 ### 2. Create virtual environment
+
+#### macOS / Linux
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
+#### Windows (Command Prompt)
+
+```bash 
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+#### Windows (PowerShell)
+
+```bash
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
 ### 3. Install dependencies
+
+#### macOS / Linux
 
 ```bash
 python3 -m pip install -r requirements.txt
 ```
+
+#### Windows
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+---
 
 ---
 
@@ -155,6 +204,130 @@ python3 -m pip install -r requirements.txt
     ```bash
     mv ~/Downloads/client_secret_*.json ./credentials.json
     ```
+
+---
+
+## Part 1: Running the Application to convert emails to local word or text documents
+
+Run the application from the project root:
+
+#### macOS / Linux
+
+```bash
+python3 -m src.run --format text
+```
+
+or
+
+```bash
+python3 -m src.run --format word
+```
+
+#### Windows
+
+```
+python -m src.run --format text
+```
+
+or
+
+```
+python -m src.run --format word
+```
+
+**Notes**
+- Do not use python run.py
+- Do not include .py when using -m
+
+## Part 2: Running the Application to zip files and send emails
+
+After reviewing and editing exported files, run the batch process:
+
+#### macOS / Linux
+
+```bash
+python3 -m src.send_batch
+```
+
+#### Windows
+
+```bash
+python -m src.send_batch
+```
+
+This will:
+- Create a zip archive from files in processed_review/
+- Save the zip to ready_to_send/
+- (Future) Send the zip via email
+- Move processed files to sent_archive/
+
+---
+
+## Environment Variables
+
+This application uses a `.env` file to store configuration values such as email settings and Google API credentials.
+
+---
+
+### Create a `.env` file
+
+#### macOS / Linux
+
+```bash
+touch .env
+```
+
+#### Windows (File Explorer)
+
+1. Open the project folder in File Explorer
+2. Right-click → New → Text Document
+3. Rename the file to:
+
+```bash
+.env
+```
+
+4. If prompted about changing the file extension, click **Yes**.
+
+**Important (Windows Only)**
+
+If you do not see file extensions:
+1. In File Explorer, click **View**
+2. Enable File name extensions
+3. Then rename the file to `.env`
+Otherwise, you may accidentally create:
+
+```
+.env.txt    (This is incorrect)
+```
+
+Instead of:
+
+```
+.env        (This is correct)
+```
+
+---
+
+**Why this matters**
+
+This tiny detail prevents one of the most common issues:
+
+> “Why isn’t my `.env` being loaded?”
+
+Because Windows quietly created:
+
+```
+.env.txt
+```
+
+…and your app is looking for:
+
+```
+.env
+```
+
+Invisible bug. Very common. Very annoying.
 
 ---
 
@@ -246,6 +419,30 @@ Additional folders used in extended workflows:
 
 - ready_to_send/ → files prepared for zipping/emailing
 - sent_archive/ → files that have already been sent
+
+---
+
+## Status
+
+- Gmail Integration  
+- Text Export  
+- Word Export  
+- Zip Packaging
+- Email Sending (In Progress)
+
+---
+
+## Internal Processing Flow
+
+The application is structured as a modular pipeline:
+
+- gmail_client.py → retrieves labeled emails
+- text_filter.py → cleans email content
+- processor.py → orchestrates processing
+- exporters:
+  - text_exporter.py → writes .txt files
+  - word_exporter.py → writes .docx files
+- error_handler.py → handles failures and reporting
 
 ---
 
@@ -361,7 +558,6 @@ P: (123) 456-7890 / 1234
 
 E: jane.doe@company.com
 ```
-
 
 ## Example Runs
 
@@ -491,6 +687,7 @@ Export Summary:
 The application formats email timestamps into a human-readable format.
 
 Example:
+
 ```
 Tuesday, March 31, 2026, 10:16 AM PDT
 ```
@@ -526,6 +723,25 @@ Ensure labels exist:
 - for_friend
 - for_friend/processed_review
 - for_friend/error
+
+Note:
+All folders are relative to the project root directory.
+
+Example (macOS/Linux):
+/Users/<your-user>/Projects/email-automation/processed_review/
+
+### pip not working inside virtual environment
+
+If you see:
+
+No module named pip.__main__
+
+Fix:
+
+```bash
+python3 -m ensurepip --upgrade
+python3 -m pip install --upgrade pip
+```
 
 ---
 
