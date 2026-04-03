@@ -26,7 +26,6 @@ def save_email_to_word(subject, sender, date, body, output_dir, status="processe
 
     counter = 1
     while os.path.exists(file_path):
-        print(f"[DUPLICATE FILE] {file_path} exists, creating a new filename")
         file_path = os.path.join(output_dir, f"{safe_subject}_{counter}.docx")
         counter += 1
 

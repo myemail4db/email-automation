@@ -15,7 +15,6 @@ def move_file_to_error(saved_file_path, error_dir):
 
     counter = 1
     while os.path.exists(error_file_path):
-        print(f"[DUPLICATE FILE] {error_file_path} exists, creating a new filename")
         base, ext = os.path.splitext(error_filename)
         error_file_path = os.path.join(error_dir, f"{base}_{counter}{ext}")
         counter += 1

@@ -1,112 +1,191 @@
-# Gmail to Document Automation
+# Email Automation Tool
 
-A Python-based automation tool that reads labeled emails from Gmail and exports them into structured files (Text or Word).
+A command-line batch processing pipeline that transforms Gmail messages into structured, traceable outputs.
+
+## Problem → Solution
+
+### The Problem
+
+Processing job-related emails manually is inefficient, inconsistent, and difficult to track at scale.
+
+In a typical workflow:
+- Emails are reviewed one by one
+- Content is manually copied and saved
+- File naming is inconsistent
+- Errors (missed emails, duplicates, failed saves) go unnoticed
+- There is no reliable way to track what was processed or when
+
+As volume increases, the process becomes slower, more error-prone, and harder to audit.
+
+There is no clear answer to:
+> “What happened during this batch of work?”
+
+---
+
+### The Impact
+
+Without structure:
+- Important emails can be skipped or duplicated
+- File organization becomes inconsistent
+- Troubleshooting requires manual investigation
+- Re-running the process introduces more risk
+- There is no audit trail or accountability
+
+---
+
+### The Solution
+
+This project replaces the manual workflow with a structured, batch-based automation pipeline.
+
+It introduces:
+
+- Controlled input using Gmail labels
+- Consistent file export (text or Word)
+- Batch-based execution with unique batch IDs
+- Structured, human-readable logging
+- Per-item tracking for success and failure
+- Error isolation and recovery handling
+
+---
+
+### Why This Matters
+
+This project transforms the workflow from:
+
+**Manual and unreliable**
+- no tracking
+- inconsistent output
+- difficult to debug
+
+to:
+
+**Automated and traceable**
+- repeatable execution
+- consistent results
+- full visibility into each run
+
+---
+
+### Design Principle
+
+This project was built around one core question:
+
+> “What happened during this run, and can I trust the result?”
+
+Every design decision supports that:
+- Batch IDs → traceability  
+- Structured logs → readability  
+- Run boundaries → clarity  
+- Error categories → faster diagnosis  
+- Controlled logging → signal over noise  
+
+---
+
+## Who This Is For
+
+This tool is designed for users who:
+
+- Process large volumes of structured emails (e.g., job opportunities, alerts, notifications)
+- Need consistent, repeatable output
+- Want visibility into what succeeded and failed during a run
+- Prefer automation over manual copy/paste workflows
+- Need a lightweight, local solution without external dependencies
+
+---
+
+## When to Use This
+
+Use this tool when:
+- Email processing is repetitive and time-consuming
+- You need consistent formatting of extracted content
+- You want a clear audit trail of each batch
+
+Do not use this tool when:
+- You only process a few emails occasionally
+- You do not need structured output or tracking
+- You prefer manual review without automation
 
 ---
 
 ## 📚 Table of Contents
 
-- [Gmail to Document Automation](#gmail-to-document-automation)
-  - [📚 Table of Contents](#-table-of-contents)
-  - [Overview](#overview)
-  - [Quick Start](#quick-start)
-  - [Features](#features)
-  - [Cost](#cost)
-  - [AI-Assisted Development](#ai-assisted-development)
-  - [Prerequisites](#prerequisites)
-  - [Setup](#setup)
-    - [1. Clone the repository](#1-clone-the-repository)
-    - [2. Create virtual environment](#2-create-virtual-environment)
-      - [macOS / Linux](#macos--linux)
-      - [Windows (Command Prompt)](#windows-command-prompt)
-      - [Windows (PowerShell)](#windows-powershell)
-    - [3. Install dependencies](#3-install-dependencies)
-      - [macOS / Linux](#macos--linux-1)
-      - [Windows](#windows)
-    - [Gmail API Setup (Required)](#gmail-api-setup-required)
-    - [Part 0: Authenticate Gmail (Generate token.json)](#part-0-authenticate-gmail-generate-tokenjson)
-      - [Run the authentication step](#run-the-authentication-step)
-        - [macOS / Linux](#macos--linux-2)
-        - [Windows](#windows-1)
-      - [What happens during authentication](#what-happens-during-authentication)
-      - [Required Permissions](#required-permissions)
-      - [When to regenerate token.json](#when-to-regenerate-tokenjson)
-        - [macOS / Linux](#macos--linux-3)
-        - [Windows](#windows-2)
-      - [Notes](#notes)
-- [🧠 Why this matters](#-why-this-matters)
-    - [Generate OAuth Token (token.json)](#generate-oauth-token-tokenjson)
-      - [First-Time Authentication](#first-time-authentication)
-        - [macOS / Linux](#macos--linux-4)
-    - [Generate OAuth Token (token.json)](#generate-oauth-token-tokenjson-1)
-      - [First-Time Authentication](#first-time-authentication-1)
-        - [macOS / Linux](#macos--linux-5)
-        - [What happens next](#what-happens-next)
-        - [Required Permissions](#required-permissions-1)
-        - [When to regenerate token.json](#when-to-regenerate-tokenjson-1)
-          - [macOS / Linux](#macos--linux-6)
-          - [Windows](#windows-3)
-    - [Gmail API Send Permissions](#gmail-api-send-permissions)
-      - [macOS / Linux](#macos--linux-7)
-      - [Windows](#windows-4)
-  - [Part 1: Running the Application to convert emails to local word or text documents](#part-1-running-the-application-to-convert-emails-to-local-word-or-text-documents)
-      - [macOS / Linux](#macos--linux-8)
-      - [Windows](#windows-5)
-  - [Part 2: Running the Application to zip files and send emails](#part-2-running-the-application-to-zip-files-and-send-emails)
-    - [macOS / Linux](#macos--linux-9)
-    - [Windows](#windows-6)
-  - [Environment Variables](#environment-variables)
-    - [Create a `.env` file](#create-a-env-file)
-      - [macOS / Linux](#macos--linux-10)
-      - [Windows (File Explorer)](#windows-file-explorer)
-      - [Mental model you’re documenting](#mental-model-youre-documenting)
-  - [Configuration](#configuration)
-    - [Gmail Labels](#gmail-labels)
-    - [Local Folders](#local-folders)
-    - [Naming](#naming)
-    - [Safety Settings](#safety-settings)
-  - [Workflow](#workflow)
-    - [Step 0: Authenticate Gmail](#step-0-authenticate-gmail)
-    - [Step 1: Export Emails](#step-1-export-emails)
-    - [Manual Review](#manual-review)
-    - [Step 2: Zip and Send Batch](#step-2-zip-and-send-batch)
-    - [Notes](#notes-1)
-    - [High-Level Flow](#high-level-flow)
-  - [Status](#status)
-  - [Internal Processing Flow](#internal-processing-flow)
-  - [Email Cleaning Logic](#email-cleaning-logic)
-  - [Output](#output)
-    - [File Format](#file-format)
-    - [Example Output](#example-output)
-  - [Example Runs](#example-runs)
-    - [1. Export Emails to Word](#1-export-emails-to-word)
-    - [2. Export Email to Text](#2-export-email-to-text)
-  - [3. Testing Error Handling](#3-testing-error-handling)
-    - [Test Error Handling with Text Format](#test-error-handling-with-text-format)
-    - [Test Error Handling with Word Format](#test-error-handling-with-word-format)
-  - [Date Formatting (Cross-Platform)](#date-formatting-cross-platform)
-  - [Troubleshooting](#troubleshooting)
-    - [Missing module](#missing-module)
-    - [Label not found](#label-not-found)
-    - [pip not working inside virtual environment](#pip-not-working-inside-virtual-environment)
-  - [Project Structure](#project-structure)
-  - [Future Enhancements](#future-enhancements)
-  - [Author](#author)
+## Contents
+
+- [Problem → Solution](#problem--solution)
+- [System Flow](#system-flow)
+- [System Overview](#system-overview)
+- [Quick Start](#quick-start)
+- [Core Features](#core-features)
+- [Setup](#setup)
+- [Workflow](#workflow)
+- Logging & Output
+- [Operational Impact](#operational-impact)
+- [Troubleshooting](#troubleshooting)
+- [Project Structure](#project-structure)
+- [Future Enhancements](#future-enhancements)
+
+
+--- 
+
+## System Overview
+
+This is a command-line batch processing tool.
+
+It reads emails from Gmail labels, transforms them into structured local files, and tracks execution through structured logging.
+
+There is no user interface. All interaction happens through:
+- command-line execution
+- local file output
+- log inspection
 
 ---
 
-## Overview
+## Output Model
 
-This application connects to Gmail using the Gmail API, retrieves emails from a specific label, and exports them into structured files for review.
+This application does not provide a graphical interface.
 
-Designed for:
-- Job tracking
-- Email organization
-- Automation workflows
+All output is generated as:
+
+- Local files (exported emails)
+- Structured logs (batch execution tracking)
+
+### File Output
+
+Processed emails are saved to:
+
+- `processed_review/` → successfully exported emails  
+- `error/` → failed exports and error reports  
+
+### Log Output
+
+Each run generates structured log entries that include:
+
+- batch ID
+- processing stage (export/send)
+- success/failure status
+- error details (if applicable)
+
+Logs are designed to answer:
+
+> “What happened during this run?”
+
+---
+
+## System Flow
+
+```
+Gmail → Export → Review → Zip → Send → Archive → Logs
+```
+
+This represents the full lifecycle of a batch run.
+
+Each stage is tracked and logged for traceability.
 
 ---
 
 ## Quick Start
+
+This is a command-line workflow. Results are written to local folders and logs, not displayed in a UI.
 
 1. Run Part 1 to export emails:
 
@@ -124,7 +203,7 @@ python -m src.send_batch
 
 ---
 
-## Features
+## Core Capabilities
 
 - Connects to Gmail via OAuth authentication  
 - Reads emails from a Gmail label  
@@ -353,93 +432,6 @@ echo "token.json" >> .gitignore
 
 ---
 
-# 🧠 Why this matters
-
-
-
-
-
-
-
-### Generate OAuth Token (token.json)
-
-After setting up Gmail API credentials, the application must authenticate once to generate a token file.
-
-This file (`token.json`) stores your OAuth access and refresh tokens and allows the application to access Gmail without prompting for login every time.
-
----
-
-#### First-Time Authentication
-
-Run the application:
-
-##### macOS / Linux
-
-```bash
-python3 -m src.run --format text
-```
-
-### Generate OAuth Token (token.json)
-
-After setting up Gmail API credentials, the application must authenticate once to generate a token file.
-
-This file (`token.json`) stores your OAuth access and refresh tokens and allows the application to access Gmail without prompting for login every time.
-
----
-
-#### First-Time Authentication
-
-Run the application:
-
-##### macOS / Linux
-```bash
-python3 -m src.run --format text
-```
----
-
-##### What happens next
-
-- A browser window will open
-- You will be prompted to log in to your Google account
-- You will be asked to grant permissions
-
-Once approved:
-- A token.json file will be created in the project root
-- Future runs will use this token automatically
-
----
-
-##### Required Permissions
-
-The application uses the following Gmail API scopes:
-- Read and modify emails:
-  https://www.googleapis.com/auth/gmail.modify
-- Send emails:
-  https://www.googleapis.com/auth/gmail.send
-
----
-
-##### When to regenerate token.json
-
-Delete and recreate the token if:
-- You update Gmail API scopes
-- You switch Google accounts
-- Authentication errors occur
-
-###### macOS / Linux
-
-```bash
-rm -f token.json
-```
-
-###### Windows
-
-```
-del token.json
-```
-
-Then rerun the application to re-authenticate.
-
 ---
 
 ### Gmail API Send Permissions
@@ -619,12 +611,12 @@ Invisible bug. Very common. Very annoying.
 
 ---
 
-#### Mental model you’re documenting
+#### Mental model about OAth
 
-You’re now clearly showing:
+Think:
 
 ```
-credentials.json → login → token.json → reuse
+credentials.json → OAuth authorization → token.json → reuse
 ```
 
 That’s exactly how OAuth works.
@@ -693,7 +685,7 @@ The application follows a two-step workflow with a manual review stage in betwee
 ### Step 0: Authenticate Gmail
 
 ```
-credentials.json → browser login → token.json
+credentials.json → OAuth authorization → token.json
 ```
 
 Now your workflow becomes:
@@ -717,6 +709,7 @@ Gmail → processed_review/
 At this stage, files are ready for manual review and editing.
 
 Gmail emails are moved to respective Gmail labels accordingly:
+
 ```
 Gmail Source Label   Condition                             Gmail Destination Label
 ------------------   ----------------------------------    -----------------------
@@ -724,7 +717,8 @@ for_friend         → read and exported into local files  → processed_review
 for_friend         → any errors                          → error
 ```
 
-Local files are saved accoredingly:
+Local files are saved accordingly:
+
 ```
 Local folder         Description
 -----------------    ------------------------------------------------
@@ -819,7 +813,112 @@ Important:
 
 ---
 
-## Output
+## Logging & Output
+
+This application uses structured, batch-based logging to track every execution.
+
+Each run generates a unique batch ID that is included in all log entries.
+
+### Log Design
+
+Logs are designed to be:
+- human-readable
+- easy to search
+- consistent across all stages
+
+Each log entry includes:
+- Timestamp (Local)
+- Batch ID
+- Processing stage (export / send)
+- Status (SUCCESS, SENT, ERROR)
+- Subject or filename
+- Error category and message (if applicable)
+
+---
+
+### Run-Level Logging
+
+Each batch is clearly defined with a start and end block:
+
+```
+============================================================
+[RUN START][job_batch_20260403_211500] export
+Timestamp (Local): 2026-04-03 21:15:00
+Total Items : 2
+```
+
+```
+============================================================
+[RUN END][job_batch_20260403_211500] export
+Timestamp (Local): 2026-04-03 21:15:09
+Processed : 2
+Success : 1
+Failed : 1
+```
+
+---
+
+### Per-Item Logging
+
+Each item is tracked individually:
+
+```
+[SUCCESS][job_batch_20260403_211500] export (1/2)
+Timestamp (Local): 2026-04-03 21:15:05
+Subject : Fw: Java Developer
+Filename : Fw Java Developer.docx
+Processing Stage : export
+Result : exported to processed_review
+```
+
+---
+
+### Error Logging
+
+Failures include structured error details:
+
+```
+[ERROR][job_batch_20260403_211500] export (2/2)
+Timestamp (Local): 2026-04-03 21:15:08
+Subject : Fw: Python Developer
+Filename : error_report_123.txt
+Processing Stage : export
+Result : failed
+Error Category : unexpected_error
+Error Message : Test error - forcing failure path
+```
+
+---
+
+### Why This Matters
+
+The logging system ensures that:
+
+- every batch is traceable using a single ID
+- successes and failures are clearly separated
+- debugging does not require digging through raw output
+- the system can be trusted to run repeatedly without ambiguity
+
+It directly supports the core design goal:
+
+> “What happened during this run?”
+
+---
+
+## Operational Impact
+
+This tool reduces manual effort and introduces consistency into a repetitive workflow.
+
+Key improvements:
+- eliminates manual email handling
+- ensures consistent file output
+- provides full traceability per batch
+- isolates failures without stopping execution
+- enables fast debugging using structured logs
+
+---
+
+## File Output
 
 Processed emails are saved locally to:
 
@@ -970,7 +1069,7 @@ Export Summary:
 +------------------+--------------------------------------------------------------------------------------------------------------------------------------+
 ```
 
-## 3. Testing Error Handling
+### 3. Testing Error Handling
 
 To simulate failures and verify error handling behavior:
 
@@ -1122,9 +1221,13 @@ email-automation/
 └── README.md
 ```
 
-## Future Enhancements
+## Final Note
 
-- Send email notifications with attachments
+This project is designed to make a simple question easy to answer:
+
+“What happened during this run?”
+
+And to answer it with clarity, consistency, and confidence.
 
 ---
 

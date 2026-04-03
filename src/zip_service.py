@@ -24,7 +24,7 @@ def create_zip_from_processed():
         for file in files:
             zipf.write(file, arcname=file.name)
 
-    print(f"[ZIP] Created: {zip_path}")
+    print(f"[ARCHIVE] Moved {len(files)} file(s) to sent_archive")
     return zip_path, files
 
 
