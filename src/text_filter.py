@@ -1,11 +1,12 @@
 import html
 import re
 
-
+# Patterns to identify reply markers, noise lines, and multi-line blocks to remove from email bodies
 REPLY_MARKER_PATTERNS = [
     r"^On .+ wrote:\s*$",
 ]
 
+# Lines that are common in email replies but don't necessarily indicate the start of a thread, such as "From:", "Sent:", "To:", "Subject:", etc.
 NOISE_LINE_PATTERNS = [
     r"^Sent from Yahoo Mail.*$",
     r"^Get Outlook for .*?$",
@@ -24,9 +25,10 @@ NOISE_LINE_PATTERNS = [
     r"^Sent from my iPhone\s*$",
     r"^External Email.*$",
     r"^Need help\?\s*Click for assistance\s*$",
-    r"To unsubscribe.*?(?=\n\s*\n|\Z)"
-    r"^Confidentiality Notice:\s*$",    
+    r"^Confidentiality Notice:\s*$",
 ]
+
+# Multi-line blocks to remove, such as legal disclaimers or survey requests
 BLOCK_PATTERNS = [
     r"CONFIDENTIALITY NOTICE:.*?(?=\n\n|\Z)",
     r"How am I doing\?.*?(?=\n\n|\Z)",
@@ -38,25 +40,42 @@ BLOCK_PATTERNS = [
     r"(confidentiality notice|privileged and confidential information).*?(?=\n\n|\Z)",
     r"(privacy notice|email confidentiality and privacy).*?(?=\n\n|\Z)",
     r"Confidentiality Notice:.*?(?=\n\n|\Z)",
-    r"The information contained in this message may be privileged and confidential and protected from disclosure.*?(?=\n\n|\Z)",    
+    r"The information contained in this message may be privileged and confidential and protected from disclosure.*?(?=\n\n|\Z)",
 ]
 
-
+# Helper function to check if a line matches any pattern in a list
 def matches_any_pattern(text: str, patterns: list[str]) -> bool:
     return any(re.match(pattern, text, re.IGNORECASE) for pattern in patterns)
 
+# Remove characters from Unicode Private Use Area, such as Gmail/Outlook
+def remove_private_unicode(text: str) -> str:
+    """
+    Remove characters from Unicode Private Use Area, such as Gmail/Outlook
+    icon glyphs like '', which do not represent meaningful text content.
+    """
+    return re.sub(r"[\uE000-\uF8FF]", "", text)
 
+# Main function to clean email body text
 def clean_email_body(body: str, trim_thread: bool = False) -> str:
     if not body:
         return ""
 
+    # Unescape HTML entities and normalize line breaks
     text = html.unescape(body)
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
+    # Remove known glyph junk and private-use characters
+    text = text.replace("", "")
+    text = remove_private_unicode(text)
+
+    # Normalize line breaks to \n for consistent processing
     lines = text.split("\n")
     cleaned_lines = []
 
+    # First pass: remove noise lines and trim thread if needed
     i = 0
+
+    # Iterate through lines, applying patterns to identify reply markers and noise lines
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
@@ -86,9 +105,11 @@ def clean_email_body(body: str, trim_thread: bool = False) -> str:
             i += 1
             continue
 
+        # If we reach here, it's a line we want to keep
         cleaned_lines.append(line)
         i += 1
 
+    # Collapse large gaps before block cleanup
     text = "\n".join(cleaned_lines)
 
     # Collapse large gaps before block cleanup
@@ -101,14 +122,14 @@ def clean_email_body(body: str, trim_thread: bool = False) -> str:
     # Final spacing cleanup
     text = re.sub(r"\n[ \t]*\n(?:[ \t]*\n)+", "\n\n", text)
 
-    # Remove lines that do not contain visible character content,
-    # and normalize spacing on lines that do.
+    # Remove leading/trailing whitespace from each line, and collapse multiple spaces
     lines = text.split("\n")
     cleaned_lines = []
     previous_was_blank = False
 
+    # Remove lines that do not contain visible character content,
+    # and normalize spacing on lines that do.
     for line in lines:
-        # Normalize odd spaces / invisible chars per line
         line = (
             line.replace("\u00A0", " ")
                 .replace("\u2007", " ")
@@ -116,27 +137,28 @@ def clean_email_body(body: str, trim_thread: bool = False) -> str:
         )
         line = re.sub(r"[\u200B-\u200D\uFEFF]", "", line)
 
-        # Collapse internal spaces/tabs
+        # Normalize odd spaces / invisible chars per line
         normalized = re.sub(r"[ \t]+", " ", line).strip()
 
         # Remove leading pipe/table artifacts
         normalized = re.sub(r"^[\|\s]+", "", normalized)
 
         # Remove lines that are only formatting junk
-        # Examples: |, ||, ----, ===, _
         if normalized and re.fullmatch(r"[|_\-=~ ]+", normalized):
             continue
 
-        # Blank or non-visible line: keep at most one blank line
+        # Remove lines that are only blank after normalization, but ensure we don't add multiple blank lines in a row
         if not normalized:
             if not previous_was_blank:
                 cleaned_lines.append("")
                 previous_was_blank = True
             continue
 
+        # Check for two-line reply marker again after normalization, to catch cases where noise lines are interspersed
         cleaned_lines.append(normalized)
         previous_was_blank = False
 
+    # Final check for two-line reply marker in cleaned lines, to catch cases where noise lines are interspersed
     text = "\n".join(cleaned_lines)
 
     # Clean bullet indentation

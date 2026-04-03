@@ -9,6 +9,7 @@ A Python-based automation tool that reads labeled emails from Gmail and exports 
 - [Gmail to Document Automation](#gmail-to-document-automation)
   - [📚 Table of Contents](#-table-of-contents)
   - [Overview](#overview)
+  - [Quick Start](#quick-start)
   - [Features](#features)
   - [Cost](#cost)
   - [AI-Assisted Development](#ai-assisted-development)
@@ -23,23 +24,54 @@ A Python-based automation tool that reads labeled emails from Gmail and exports 
       - [macOS / Linux](#macos--linux-1)
       - [Windows](#windows)
     - [Gmail API Setup (Required)](#gmail-api-setup-required)
+    - [Part 0: Authenticate Gmail (Generate token.json)](#part-0-authenticate-gmail-generate-tokenjson)
+      - [Run the authentication step](#run-the-authentication-step)
+        - [macOS / Linux](#macos--linux-2)
+        - [Windows](#windows-1)
+      - [What happens during authentication](#what-happens-during-authentication)
+      - [Required Permissions](#required-permissions)
+      - [When to regenerate token.json](#when-to-regenerate-tokenjson)
+        - [macOS / Linux](#macos--linux-3)
+        - [Windows](#windows-2)
+      - [Notes](#notes)
+- [🧠 Why this matters](#-why-this-matters)
+    - [Generate OAuth Token (token.json)](#generate-oauth-token-tokenjson)
+      - [First-Time Authentication](#first-time-authentication)
+        - [macOS / Linux](#macos--linux-4)
+    - [Generate OAuth Token (token.json)](#generate-oauth-token-tokenjson-1)
+      - [First-Time Authentication](#first-time-authentication-1)
+        - [macOS / Linux](#macos--linux-5)
+        - [What happens next](#what-happens-next)
+        - [Required Permissions](#required-permissions-1)
+        - [When to regenerate token.json](#when-to-regenerate-tokenjson-1)
+          - [macOS / Linux](#macos--linux-6)
+          - [Windows](#windows-3)
+    - [Gmail API Send Permissions](#gmail-api-send-permissions)
+      - [macOS / Linux](#macos--linux-7)
+      - [Windows](#windows-4)
   - [Part 1: Running the Application to convert emails to local word or text documents](#part-1-running-the-application-to-convert-emails-to-local-word-or-text-documents)
-      - [macOS / Linux](#macos--linux-2)
-      - [Windows](#windows-1)
+      - [macOS / Linux](#macos--linux-8)
+      - [Windows](#windows-5)
   - [Part 2: Running the Application to zip files and send emails](#part-2-running-the-application-to-zip-files-and-send-emails)
-      - [macOS / Linux](#macos--linux-3)
-      - [Windows](#windows-2)
+    - [macOS / Linux](#macos--linux-9)
+    - [Windows](#windows-6)
   - [Environment Variables](#environment-variables)
     - [Create a `.env` file](#create-a-env-file)
-      - [macOS / Linux](#macos--linux-4)
+      - [macOS / Linux](#macos--linux-10)
       - [Windows (File Explorer)](#windows-file-explorer)
+      - [Mental model you’re documenting](#mental-model-youre-documenting)
   - [Configuration](#configuration)
     - [Gmail Labels](#gmail-labels)
     - [Local Folders](#local-folders)
     - [Naming](#naming)
     - [Safety Settings](#safety-settings)
-  - [Running the Application](#running-the-application)
   - [Workflow](#workflow)
+    - [Step 0: Authenticate Gmail](#step-0-authenticate-gmail)
+    - [Step 1: Export Emails](#step-1-export-emails)
+    - [Manual Review](#manual-review)
+    - [Step 2: Zip and Send Batch](#step-2-zip-and-send-batch)
+    - [Notes](#notes-1)
+    - [High-Level Flow](#high-level-flow)
   - [Status](#status)
   - [Internal Processing Flow](#internal-processing-flow)
   - [Email Cleaning Logic](#email-cleaning-logic)
@@ -71,6 +103,24 @@ Designed for:
 - Job tracking
 - Email organization
 - Automation workflows
+
+---
+
+## Quick Start
+
+1. Run Part 1 to export emails:
+
+```
+python -m src.run --format text
+```
+
+2. Review and edit files in `processed_review/`
+
+3. Run Part 2 to send batch:
+
+```
+python -m src.send_batch
+```
 
 ---
 
@@ -207,6 +257,217 @@ python -m pip install -r requirements.txt
 
 ---
 
+### Part 0: Authenticate Gmail (Generate token.json)
+
+Before running the application, you must authenticate with Gmail once to generate a `token.json` file.
+
+This file stores OAuth credentials and allows the application to access Gmail without prompting for login each time.
+
+---
+
+#### Run the authentication step
+
+##### macOS / Linux
+
+```bash
+python3 -m src.auth_gmail
+```
+
+##### Windows
+
+```bash
+python -m src.auth_gmail
+```
+
+---
+
+#### What happens during authentication
+
+1. A browser window will open
+2. You will be prompted to choose your Google account
+3. Google may show a warning:
+
+```
+Google hasn’t verified this app
+```
+
+4. Click:
+
+- Advanced
+- Go to <your app name> (unsafe)
+
+5. Click Continue to grant permissions
+6. After successful authentication, you will see:
+
+```
+The authentication flow has completed. You may close this window.
+```
+
+7. A file named token.json will be created in the project root
+
+---
+
+#### Required Permissions
+
+The application requests the following Gmail API permissions:
+
+- Read and modify emails
+  https://www.googleapis.com/auth/gmail.modify
+
+- Send emails
+  https://www.googleapis.com/auth/gmail.send
+
+---
+
+#### When to regenerate token.json
+
+Delete and recreate the token if:
+- You change Gmail API scopes
+- You switch Google accounts
+- You encounter authentication errors
+
+##### macOS / Linux
+
+```
+rm -f token.json
+```
+
+##### Windows
+
+```
+del token.json
+```
+
+Then rerun the authentication step.
+
+---
+
+#### Notes
+- token.json is created automatically after authentication
+- Do not commit token.json to version control
+- Add it to .gitignore:
+
+```bash
+echo "token.json" >> .gitignore
+```
+
+---
+
+# 🧠 Why this matters
+
+
+
+
+
+
+
+### Generate OAuth Token (token.json)
+
+After setting up Gmail API credentials, the application must authenticate once to generate a token file.
+
+This file (`token.json`) stores your OAuth access and refresh tokens and allows the application to access Gmail without prompting for login every time.
+
+---
+
+#### First-Time Authentication
+
+Run the application:
+
+##### macOS / Linux
+
+```bash
+python3 -m src.run --format text
+```
+
+### Generate OAuth Token (token.json)
+
+After setting up Gmail API credentials, the application must authenticate once to generate a token file.
+
+This file (`token.json`) stores your OAuth access and refresh tokens and allows the application to access Gmail without prompting for login every time.
+
+---
+
+#### First-Time Authentication
+
+Run the application:
+
+##### macOS / Linux
+```bash
+python3 -m src.run --format text
+```
+---
+
+##### What happens next
+
+- A browser window will open
+- You will be prompted to log in to your Google account
+- You will be asked to grant permissions
+
+Once approved:
+- A token.json file will be created in the project root
+- Future runs will use this token automatically
+
+---
+
+##### Required Permissions
+
+The application uses the following Gmail API scopes:
+- Read and modify emails:
+  https://www.googleapis.com/auth/gmail.modify
+- Send emails:
+  https://www.googleapis.com/auth/gmail.send
+
+---
+
+##### When to regenerate token.json
+
+Delete and recreate the token if:
+- You update Gmail API scopes
+- You switch Google accounts
+- Authentication errors occur
+
+###### macOS / Linux
+
+```bash
+rm -f token.json
+```
+
+###### Windows
+
+```
+del token.json
+```
+
+Then rerun the application to re-authenticate.
+
+---
+
+### Gmail API Send Permissions
+
+If email sending fails due to insufficient permissions:
+
+- Ensure the Gmail API scope includes:
+  https://www.googleapis.com/auth/gmail.send
+
+- Delete the existing token file and re-authenticate:
+
+#### macOS / Linux
+```bash
+rm -f token.json
+python3 -m src.run
+```
+
+#### Windows
+
+```bash
+del token.json
+python -m src.run
+```
+
+This prevents a very common failure.
+
+---
+
 ## Part 1: Running the Application to convert emails to local word or text documents
 
 Run the application from the project root:
@@ -243,13 +504,13 @@ python -m src.run --format word
 
 After reviewing and editing exported files, run the batch process:
 
-#### macOS / Linux
+### macOS / Linux
 
 ```bash
 python3 -m src.send_batch
 ```
 
-#### Windows
+### Windows
 
 ```bash
 python -m src.send_batch
@@ -258,8 +519,35 @@ python -m src.send_batch
 This will:
 - Create a zip archive from files in processed_review/
 - Save the zip to ready_to_send/
-- (Future) Send the zip via email
+- Send the zip via Gmail API
 - Move processed files to sent_archive/
+
+```markdown
+### Dry Run Mode
+
+The application supports a safe testing mode.
+
+When enabled:
+
+- Emails are not sent
+- Files are not archived
+- The process simulates execution
+
+Controlled via `.env`:
+
+```bash
+SEND_EMAILS=False
+TEST_MODE=True
+```
+
+To enable real sending:
+
+```
+SEND_EMAILS=True
+TEST_MODE=False
+```
+
+This makes your tool safe to use immediately
 
 ---
 
@@ -331,6 +619,18 @@ Invisible bug. Very common. Very annoying.
 
 ---
 
+#### Mental model you’re documenting
+
+You’re now clearly showing:
+
+```
+credentials.json → login → token.json → reuse
+```
+
+That’s exactly how OAuth works.
+
+---
+
 ## Configuration
 
 Edit:
@@ -382,45 +682,98 @@ src/config.py
 }
 ```
 
-## Running the Application
-
-Run the application from the project root using package mode:
-
-```bash
-python3 -m src.run --format text
-```
-
-or
-
-```bash
-python3 -m src.run --format word
-```
-
-This runs the application as a Python package and ensures all `src.*` imports are resolved correctly.
-
-Note:
-- Do not use `python3 run.py`
-- Do not include `.py` when using `-m`
-
 ---
 
 ## Workflow
 
+The application follows a two-step workflow with a manual review stage in between.
+
+---
+
+### Step 0: Authenticate Gmail
+
 ```
-Gmail Source Label   Condition   Gmail Destination Label
-------------------   ---------   -----------------------
-for_friend         → export    → processed_review
-for_friend         → failure   → error
+credentials.json → browser login → token.json
 ```
+
+Now your workflow becomes:
+
+Step 0 → Authenticate
+Step 1 → Export
+Step 2 → Zip + Send
+That’s a complete lifecycle.
+
+---
+
+### Step 1: Export Emails
+
+```text
+Gmail → processed_review/
+```
+
+- Emails are read from the configured Gmail label
+- Content is cleaned and structured
+- Files are exported to the local `processed_review/` directory
+At this stage, files are ready for manual review and editing.
+
+Gmail emails are moved to respective Gmail labels accordingly:
+```
+Gmail Source Label   Condition                             Gmail Destination Label
+------------------   ----------------------------------    -----------------------
+for_friend         → read and exported into local files  → processed_review
+for_friend         → any errors                          → error
+```
+
+Local files are saved accoredingly:
+```
+Local folder         Description
+-----------------    ------------------------------------------------
+processed_review/    email has been exported and ready to be reviewed
+error/               email could not be exported locally
+```
+
 
 Emails are read, cleaned (removing headers, disclaimers, and noise), and exported into structured documents.
 
-Additional folders used in extended workflows:
+---
 
-- ready_to_send/ → files prepared for zipping/emailing
-- sent_archive/ → files that have already been sent
+### Manual Review
+
+Users can:
+- Open and edit exported files
+- Rename files if needed
+- Remove or adjust content
+- Prepare final versions before sending
+This step ensures quality and accuracy before distribution.
+
+### Step 2: Zip and Send Batch
+
+- All files in `processed_review/` are packaged into a zip archive
+- A zip archive is created in `ready_to_send/`
+- The zip file is sent via Gmail API
+- After successful sending, files are moved to `sent_archive/`
+
+Local files are saved accoredingly:
+```
+Local folder         Description
+--------------    -----------------------------------
+ready_to_send/    files prepared for zipping/emailing
+sent_archive/     files that have already been sent
+```
+
+### Notes
+- If email sending fails, files remain in `processed_review/`
+- Emails are sent first before moving to `sent_archive/`
+- Dry run mode allows testing without sending emails or archiving files
+- This separation provides a safe and controlled workflow
 
 ---
+
+### High-Level Flow
+
+```
+Gmail → Export → Manual Review → Zip → Send → Archive
+```
 
 ## Status
 
@@ -771,9 +1124,7 @@ email-automation/
 
 ## Future Enhancements
 
-- Zip exported files into batch archives
 - Send email notifications with attachments
-- Archive processed batches after sending
 
 ---
 

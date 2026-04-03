@@ -1,4 +1,5 @@
 from src.zip_service import create_zip_from_processed, archive_processed_files
+from src.email_service import send_batch_email
 
 
 def main():
@@ -12,12 +13,13 @@ def main():
 
     print(f"[SEND_BATCH] Zip created: {zip_path}")
 
-    # For now, skip email sending
-    print("[SEND_BATCH] Email sending is currently disabled.")
+    email_sent = send_batch_email(zip_path)
 
-    archive_processed_files(files)
-
-    print("[SEND_BATCH] Batch process completed.")
+    if email_sent:
+        archive_processed_files(files)
+        print("[SEND_BATCH] Batch process completed.")
+    else:
+        print("[SEND_BATCH] Email failed or dry run mode enabled. Files were not archived.")
 
 
 if __name__ == "__main__":
