@@ -6,7 +6,11 @@
 ![Logging](https://img.shields.io/badge/logging-structured-informational)
 ![Workflow](https://img.shields.io/badge/workflow-batch--based-blueviolet)
 
+---
+
 A batch-based workflow that extracts Gmail messages, converts them into structured files, and tracks execution through structured logging.
+
+---
 
 ## Project Documentation <!-- omit from toc -->
 
@@ -23,11 +27,85 @@ For deeper context on system design, workflow, and the reasoning behind this pro
 ## Table of Contents <!-- omit from toc -->
 
 - [Quick Start](#quick-start)
+- [Prerequisites](#prerequisites)
 - [Setup (One-Time)](#setup-one-time)
 - [Configuration](#configuration)
 - [Workflow Overview](#workflow-overview)
 - [Logging](#logging)
 - [Project Documentation](#project-documentation)
+
+---
+
+## Prerequisites
+
+Before running this project, make sure the following are installed or available:
+
+- Python 3.10 to 3.12
+- pip
+- A Gmail account
+- A Google Cloud project with the Gmail API enabled
+- An OAuth Desktop App credentials file downloaded from Google Cloud Console
+
+**NOTE:**  
+- Python 3.11 recommended
+- Python 3.10 to 3.12 supported for this project
+- Python 3.13+ not yet validated
+- 
+---
+
+## Setup (One-Time)
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repo-url>
+cd email-automation
+```
+
+### 2. Create a virtual environment
+
+#### macOS / Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+#### Windows (Command Prompt)
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+#### Windows (PowerShell)
+
+```
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### 3. Install dependencies
+
+#### macOS / Linux
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+#### Windows
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 4. Create your environment file
+
+```bash
+cp .env.example .env
+```
+
+On Windows, copy .env.example manually and rename it to .env.
 
 ---
 
@@ -43,6 +121,19 @@ This project emphasizes traceability, repeatability, and controlled automation o
 python -m src export --format text
 python -m src send
 ```
+
+If this is your first time running the project on a new machine:
+
+1. Complete Setup (One-Time)
+2. Update `.env`
+3. Add your `credentials.json`
+4. Run:
+
+```bash
+python -m src auth
+```
+
+Then run export/send commands
 
 ---
 
