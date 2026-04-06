@@ -1,5 +1,4 @@
 from pathlib import Path
-
 from dotenv import load_dotenv
 
 from src.email_service import send_batch_email
@@ -68,7 +67,6 @@ def main():
         print(f"[SEND_BATCH] Zip created: {zip_path}")
 
         email_sent = send_batch_email(zip_path)
-
         processed_count = 1
 
         if email_sent:

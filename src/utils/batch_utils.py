@@ -2,19 +2,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from typing import Optional
 
-
-LOCAL_TZ = ZoneInfo("America/Los_Angeles")
+from src.config import config, get_display_timezone
 
 
 def local_timestamp() -> str:
-    return datetime.now(LOCAL_TZ).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(get_display_timezone()).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def generate_batch_id(prefix: str = "job_batch") -> str:
-    return f"{prefix}_{datetime.now(LOCAL_TZ).strftime('%Y%m%d_%H%M%S')}"
+
+def generate_batch_id(prefix: str | None = None) -> str:
+    actual_prefix = prefix or config["naming"]["zip_prefix"]
+    return f"{actual_prefix}_{datetime.now(get_display_timezone()).strftime('%Y%m%d_%H%M%S')}"
+
 
 
 def _line(width: int = 60, char: str = "=") -> str:
@@ -27,6 +28,7 @@ class LogContext:
     stage: str
 
 
+
 def format_run_start(batch_id: str, stage: str, total_items: int) -> str:
     return "\n".join([
         _line(),
@@ -35,6 +37,7 @@ def format_run_start(batch_id: str, stage: str, total_items: int) -> str:
         f"Total Items       : {total_items}",
         _line(),
     ])
+
 
 
 def format_run_end(
@@ -53,6 +56,7 @@ def format_run_end(
         f"Failed            : {failed}",
         _line(),
     ])
+
 
 
 def format_item_block(

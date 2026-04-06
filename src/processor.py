@@ -1,20 +1,17 @@
 from pathlib import Path
 import os
 
-from src.config import PATHS, config
+from src.config import CONTINUE_ON_ERROR, PATHS, config
 from src.error_handler import move_file_to_error
 from src.gmail_client import GmailClient
 from src.text_exporter import save_email_to_text
-from src.utils.batch_utils import (
-    format_item_block,
-    format_run_end,
-    format_run_start,
-)
+from src.utils.batch_utils import format_item_block, format_run_end, format_run_start
 from src.utils.error_utils import create_error_report
 from src.word_exporter import save_email_to_word
 
 
 TEST_ERROR_MODE = os.getenv("TEST_ERROR_MODE", "").lower() == "true"
+
 
 
 def print_export_summary(results):
@@ -42,6 +39,7 @@ def print_export_summary(results):
     print()
 
 
+
 def categorize_export_error(exc: Exception) -> str:
     if isinstance(exc, ValueError):
         return "validation_error"
@@ -52,6 +50,7 @@ def categorize_export_error(exc: Exception) -> str:
     return "unexpected_error"
 
 
+
 def export_labeled_emails(format_type="text", logger=None, batch_id=None):
     results = []
 
@@ -59,6 +58,8 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
     input_label = labels["source"]
     processed_label = labels["processed_review"]
     error_label = labels["error"]
+    processed_review_dir = PATHS["processed_review"]
+    error_dir = PATHS["error"]
 
     gmail = GmailClient()
     label_map = gmail.get_label_map()
@@ -101,9 +102,9 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
                     sender,
                     date,
                     body,
-                    PATHS["processed_review"],
-                    status="processed_review",
-                    format_type="text"
+                    processed_review_dir,
+                    status=config["local_folders"]["processed_review"],
+                    format_type="text",
                 )
             elif format_type == "word":
                 saved_file_path = save_email_to_word(
@@ -111,9 +112,9 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
                     sender,
                     date,
                     body,
-                    PATHS["processed_review"],
-                    status="processed_review",
-                    format_type="word"
+                    processed_review_dir,
+                    status=config["local_folders"]["processed_review"],
+                    format_type="word",
                 )
             else:
                 raise ValueError(f"Unsupported format_type: {format_type}")
@@ -121,8 +122,8 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
             print(f"Saved: {saved_file_path}")
 
             results.append({
-                "status": "processed_review",
-                "path": str(saved_file_path)
+                "status": config["local_folders"]["processed_review"],
+                "path": str(saved_file_path),
             })
 
             gmail.modify_labels(
@@ -131,7 +132,7 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
                 remove_label_ids=[label_map[input_label]],
             )
 
-            print(f"[SUCCESS] {subject} → processed_review")
+            print(f"[SUCCESS] {subject} → {config['local_folders']['processed_review']}")
 
             processed_count += 1
             success_count += 1
@@ -146,7 +147,7 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
                         total=total,
                         subject=subject,
                         filename=Path(saved_file_path).name if saved_file_path else None,
-                        result="exported to processed_review",
+                        result=f"exported to {config['local_folders']['processed_review']}",
                     )
                 )
 
@@ -154,12 +155,8 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
             print(f"Error processing message {msg_id}: {exc}")
 
             if saved_file_path and os.path.exists(saved_file_path):
-                error_file_path = move_file_to_error(saved_file_path, PATHS["error"])
+                error_file_path = move_file_to_error(saved_file_path, error_dir)
                 print(f"[ERROR] File moved to: {error_file_path}")
-                results.append({
-                    "status": "Error",
-                    "path": str(error_file_path)
-                })
             else:
                 error_file_path = create_error_report(
                     msg_id=msg_id,
@@ -168,14 +165,11 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
                     date=date,
                     format_type=format_type,
                     error_message=str(exc),
-                    error_dir=PATHS["error"]
+                    error_dir=error_dir,
                 )
-
                 print(f"[ERROR] Error report created: {error_file_path}")
-                results.append({
-                    "status": "Error",
-                    "path": str(error_file_path)
-                })
+
+            results.append({"status": "Error", "path": str(error_file_path)})
 
             gmail.modify_labels(
                 msg_id,
@@ -203,6 +197,9 @@ def export_labeled_emails(format_type="text", logger=None, batch_id=None):
                         error_message=str(exc),
                     )
                 )
+
+            if not CONTINUE_ON_ERROR:
+                break
 
     if logger and batch_id:
         logger.info(

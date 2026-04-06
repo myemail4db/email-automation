@@ -1,9 +1,11 @@
+from pathlib import Path
+
+from src.config import config
 from src.text_filter import clean_email_body
 from src.utils.date_utils import format_email_date
-import os
-from pathlib import Path
-from datetime import datetime
-   
+
+
+
 def build_email_header(subject, sender, date, status, format_type, file_name):
     line = "=" * 60
 
@@ -27,20 +29,28 @@ def build_email_header(subject, sender, date, status, format_type, file_name):
     return "\n".join(header_lines)
 
 
-def save_email_to_text(subject, sender, date, body, output_dir, status="processed_review", format_type="text"):
-    safe_subject = "".join(c for c in subject if c.isalnum() or c in (" ", "_")).strip()
-    safe_subject = safe_subject[:80] or "email"
 
-    base_filename = f"{safe_subject}.txt"
-    file_path = os.path.join(output_dir, base_filename)
+def build_safe_stem(subject: str) -> str:
+    fallback_prefix = config["naming"]["fallback_prefix"]
+    max_length = config["naming"]["max_filename_length"]
+
+    safe_subject = "".join(c for c in subject if c.isalnum() or c in (" ", "_")).strip()
+    safe_subject = safe_subject[:max_length].strip()
+    return safe_subject or fallback_prefix
+
+
+
+def save_email_to_text(subject, sender, date, body, output_dir, status="processed_review", format_type="text"):
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_stem = build_safe_stem(subject or "")
+    file_path = output_dir / f"{safe_stem}.txt"
 
     counter = 1
-
-    while os.path.exists(file_path):
-        file_path = os.path.join(output_dir, f"{safe_subject}_{counter}.txt")
+    while file_path.exists():
+        file_path = output_dir / f"{safe_stem}_{counter}.txt"
         counter += 1
-
-    file_name = Path(file_path).name
 
     cleaned_body = clean_email_body(body)
 
@@ -50,11 +60,8 @@ def save_email_to_text(subject, sender, date, body, output_dir, status="processe
         date=date,
         status=status,
         format_type=format_type,
-        file_name=file_name
+        file_name=file_path.name,
     )
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(header)
-        f.write(cleaned_body)
-
-    return file_path
+    file_path.write_text(header + cleaned_body, encoding="utf-8")
+    return str(file_path)

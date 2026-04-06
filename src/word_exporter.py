@@ -1,13 +1,16 @@
-from src.text_filter import clean_email_body
-from src.utils.date_utils import format_email_date
+from pathlib import Path
+
 from docx import Document
 from docx.shared import Pt
-from pathlib import Path
-import os
-from datetime import datetime
+
+from src.text_exporter import build_safe_stem
+from src.text_filter import clean_email_body
+from src.utils.date_utils import format_email_date
+
 
 def add_separator(doc, char="=", length=60):
     doc.add_paragraph(char * length)
+
 
 
 def add_header_field(doc, label, value):
@@ -17,19 +20,19 @@ def add_header_field(doc, label, value):
     p.add_run(str(value))
 
 
-def save_email_to_word(subject, sender, date, body, output_dir, status="processed_review", format_type="word"):
-    safe_subject = "".join(c for c in subject if c.isalnum() or c in (" ", "_")).strip()
-    safe_subject = safe_subject[:80] or "email"
 
-    base_filename = f"{safe_subject}.docx"
-    file_path = os.path.join(output_dir, base_filename)
+def save_email_to_word(subject, sender, date, body, output_dir, status="processed_review", format_type="word"):
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_stem = build_safe_stem(subject or "")
+    file_path = output_dir / f"{safe_stem}.docx"
 
     counter = 1
-    while os.path.exists(file_path):
-        file_path = os.path.join(output_dir, f"{safe_subject}_{counter}.docx")
+    while file_path.exists():
+        file_path = output_dir / f"{safe_stem}_{counter}.docx"
         counter += 1
 
-    file_name = Path(file_path).name
     cleaned_body = clean_email_body(body)
 
     doc = Document()
@@ -52,7 +55,7 @@ def save_email_to_word(subject, sender, date, body, output_dir, status="processe
     add_header_field(doc, "Date", format_email_date(date))
     add_header_field(doc, "Workflow Status", status)
     add_header_field(doc, "Export Format", format_type)
-    add_header_field(doc, "File Name", file_name)
+    add_header_field(doc, "File Name", file_path.name)
 
     add_separator(doc)
     doc.add_paragraph()
@@ -61,4 +64,4 @@ def save_email_to_word(subject, sender, date, body, output_dir, status="processe
         doc.add_paragraph(line)
 
     doc.save(file_path)
-    return file_path
+    return str(file_path)
