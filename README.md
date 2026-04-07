@@ -26,13 +26,19 @@ For deeper context on system design, workflow, and the reasoning behind this pro
 
 ## Table of Contents <!-- omit from toc -->
 
-- [Quick Start](#quick-start)
 - [Prerequisites](#prerequisites)
 - [Setup (One-Time)](#setup-one-time)
+- [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Workflow Overview](#workflow-overview)
 - [Logging](#logging)
 - [Project Documentation](#project-documentation)
+
+---
+
+## Design Focus
+
+This project emphasizes traceability, repeatability, and controlled automation over raw speed.
 
 ---
 
@@ -50,24 +56,37 @@ Before running this project, make sure the following are installed or available:
 - Python 3.11 recommended
 - Python 3.10 to 3.12 supported for this project
 - Python 3.13+ not yet validated
-- 
+ 
 ---
 
 ## Setup (One-Time)
 
+---
+
 ### 1. Clone the repository
 
+#### Option A: Clone with Git
+
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/myemail4db/email-automation.git
 cd email-automation
 ```
+
+#### Option B: Download without Git
+
+- Click "Code"
+- Select "Download ZIP"
+- Extract the folder
+- Open a terminal in the project directory
+
+---
 
 ### 2. Create a virtual environment
 
 #### macOS / Linux
 
 ```bash
-python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
 ```
 
@@ -85,6 +104,8 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
+---
+
 ### 3. Install dependencies
 
 #### macOS / Linux
@@ -99,19 +120,155 @@ python3 -m pip install -r requirements.txt
 python -m pip install -r requirements.txt
 ```
 
-### 4. Create your environment file
+---
+
+### 4. Create .env
+
+Copy the example file:
 
 ```bash
 cp .env.example .env
 ```
 
-On Windows, copy .env.example manually and rename it to .env.
+On Windows, copy `.env.example` manually and rename it to `.env`.
 
 ---
 
-## Design Focus
+####  `.env` rules
 
-This project emphasizes traceability, repeatability, and controlled automation over raw speed.
+- Values may contain spaces
+- Quotes are optional
+- Blank values fall back to defaults where supported
+- Use `\n` in `SEND_BODY_TEXT` for line breaks
+
+Example:
+
+```env
+SEND_SIGNATURE_NAME=Email Automation
+SEND_BODY_TEXT=Hello,\n\nAttached is the latest batch of reviewed job files.
+```
+
+---
+
+### 5. Configure your environment
+
+Open the `.env` file and update the required fields:
+
+- email addresses
+- Gmail labels
+- folder settings
+
+See the [Configuration](#configuration) section for details.
+
+---
+
+### 6. Gmail API setup
+
+#### Create OAuth Credentials (credentials.json)
+
+To use the Gmail API, you must create an OAuth client and download a `credentials.json` file.
+
+##### Steps
+
+1. Go to Google Cloud Console:
+   https://console.cloud.google.com/
+
+2. Create or select a project
+
+3. Enable the Gmail API:
+   - Navigate to: APIs & Services → Library
+   - Search for: Gmail API
+   - Click “Enable”
+
+4. Configure OAuth Consent Screen:
+   - Go to: APIs & Services → OAuth consent screen
+   - Choose **External**
+   - Fill in required fields (App name, Email)
+   - Save
+
+5. Create OAuth Client ID:
+   - Go to: APIs & Services → Credentials
+   - Click **Create Credentials → OAuth client ID**
+   - Application type: **Desktop app**
+   - Click Create
+
+6. Download credentials:
+   - Click the download icon
+   - Save the file as:
+
+```
+credentials.json
+```
+
+7. Place the file in your project root directory:
+
+```
+email-automation/
+├── credentials.json
+├── .env
+├── src/
+```
+
+---
+
+##### Important
+   - Do not rename the file unless you update .env
+   - Do not commit credentials.json to source control
+   - Keep this file secure
+
+---
+
+### Safety Settings
+
+#### Recommended first run:
+
+```env
+SEND_EMAILS=False
+TEST_MODE=True
+CONTINUE_ON_ERROR=True
+```
+
+**NOTE:** See the Configuration Section to configure these for the production run
+
+#### Behavior
+
+- `TEST_MODE=True` prevents real sending
+- `SEND_EMAILS=False` prevents real sending
+- `CONTINUE_ON_ERROR=True` keeps the export batch moving after failures
+- `CONTINUE_ON_ERROR=False` stops the export batch after the first failure
+
+---
+
+### 7. Authenticate
+
+After placing credentials.json, run:
+
+```bash
+python -m src auth
+```
+
+This will:
+   - open a browser
+   - prompt for Gmail login
+   - generate token.json
+
+---
+
+## Command Style
+
+This project uses a single package entrypoint:
+
+```bash
+python -m src <command>
+```
+
+Supported commands:
+
+- `auth`
+- `export`
+- `send`
+
+Do not run `python run.py`.
 
 ---
 
@@ -121,19 +278,6 @@ This project emphasizes traceability, repeatability, and controlled automation o
 python -m src export --format text
 python -m src send
 ```
-
-If this is your first time running the project on a new machine:
-
-1. Complete Setup (One-Time)
-2. Update `.env`
-3. Add your `credentials.json`
-4. Run:
-
-```bash
-python -m src auth
-```
-
-Then run export/send commands
 
 ---
 
@@ -173,24 +317,6 @@ In local editors like VS Code, install a Mermaid extension to preview.
 
 ---
 
-## Command Style
-
-This project uses a single package entrypoint:
-
-```bash
-python -m src <command>
-```
-
-Supported commands:
-
-- `auth`
-- `export`
-- `send`
-
-Do not run `python run.py`.
-
----
-
 ## Workflow Overview
 
 Run the workflow in two steps:
@@ -214,9 +340,12 @@ For a detailed step-by-step breakdown, see:
 
 ## Configuration
 
-All user configuration is handled through `.env`.
+This section provides detailed reference information for configuring the `.env` file.
 
-Users should not edit Python source files to change labels, directories, email text, or safety settings.
+During setup, you only need to update the required fields.  
+Use this section for full descriptions, optional settings, and advanced configuration.
+
+---
 
 ### Create `.env`
 
@@ -228,7 +357,9 @@ cp .env.example .env
 
 On Windows, copy `.env.example` manually and rename it to `.env`.
 
-## `.env` rules
+---
+
+####  `.env` rules
 
 - Values may contain spaces
 - Quotes are optional
@@ -242,7 +373,9 @@ SEND_SIGNATURE_NAME=Email Automation
 SEND_BODY_TEXT=Hello,\n\nAttached is the latest batch of reviewed job files.
 ```
 
-## Gmail labels
+---
+
+### Gmail labels
 
 Only the source label is entered as a full label.
 
@@ -264,7 +397,9 @@ for_friend/processed_review
 for_friend/error
 ```
 
-### Important
+---
+
+#### Important
 
 Do **not** enter these as full paths:
 
@@ -275,7 +410,9 @@ GMAIL_LABEL_ERROR=for_friend/error
 
 That is now validated and rejected so the config stays clean and predictable.
 
-## Local folders
+---
+
+### Local folders
 
 These are configurable through `.env`:
 
@@ -292,17 +429,9 @@ The logs directory is fixed automatically as:
 logs/
 ```
 
-## Safety settings
+### Safety Settings
 
-Recommended first run:
-
-```env
-SEND_EMAILS=False
-TEST_MODE=True
-CONTINUE_ON_ERROR=True
-```
-
-Recommended production setup:
+#### Recommended production setup:
 
 ```env
 SEND_EMAILS=True
@@ -310,59 +439,19 @@ TEST_MODE=False
 CONTINUE_ON_ERROR=True
 ```
 
-### Behavior
+These settings control how the application behaves during execution.
 
-- `TEST_MODE=True` prevents real sending
-- `SEND_EMAILS=False` prevents real sending
-- `CONTINUE_ON_ERROR=True` keeps the export batch moving after failures
-- `CONTINUE_ON_ERROR=False` stops the export batch after the first failure
-
-## Gmail API setup
-
-1. Create or select a Google Cloud project
-2. Enable the Gmail API
-3. Configure the OAuth consent screen
-4. Create a Desktop App OAuth client
-5. Download the credentials file
-6. Place it in the project root or point to it with `.env`
-
-Example:
-
-```env
-GOOGLE_CREDENTIALS_FILE=credentials.json
-GOOGLE_TOKEN_FILE=token.json
-```
-
-## Authenticate Gmail
-
-Run once:
-
-```bash
-python -m src auth
-```
-
-This creates `token.json` for future runs.
-
-If scopes change or the token becomes invalid, delete `token.json` and run auth again.
-
-## Logging
-
-The application uses structured batch logging with batch IDs, per-item tracking, and run summaries.
-
-For full details, see:
-- [Logging Design](docs/LOGGING.md)
-
-## Example output folders
-
-```text
-email-automation/
-├── processed_review/
-├── ready_to_send/
-├── sent_archive/
-├── error/
-├── logs/
-└── src/
-```
+- SEND_EMAILS
+    - True → emails will be sent
+    - False → sending is disabled
+  
+- TEST_MODE
+    - True → no real actions are performed (safe testing)
+    - False → full execution
+  
+- CONTINUE_ON_ERROR
+    - True → continues processing after failures
+    - False → stops on first error
 
 ---
 
