@@ -48,6 +48,7 @@ Before running this project, make sure the following are installed or available:
 
 - Python 3.10 to 3.12
 - pip
+- On Windows: install tzdata (use the command `python -m pip install tzdata`)
 - A Gmail account
 - A Google Cloud project with the Gmail API enabled
 - An OAuth Desktop App credentials file downloaded from Google Cloud Console
