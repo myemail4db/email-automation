@@ -12,6 +12,22 @@ A batch-based workflow that extracts Gmail messages, converts them into structur
 
 ---
 
+## Why I built this
+
+I originally built this to handle job emails more consistently.
+
+Doing it manually worked at first, but it got messy pretty quickly — copying content, renaming files, and trying to remember what was already processed.
+
+After a while, the bigger problem wasn’t speed. It was visibility.
+
+I wanted a simple way to answer:
+
+"What happened during this run?"
+
+This tool is just a structured way to solve that.
+
+---
+
 ## Project Documentation <!-- omit from toc -->
 
 This README focuses on setup and usage.
@@ -23,6 +39,8 @@ For deeper context on system design, workflow, and the reasoning behind this pro
 - [Design Decisions](docs/DESIGN_DECISIONS.md)
 - [Workflow Lifecycle](docs/WORKFLOW.md)
 - [Logging Design](docs/LOGGING.md)
+
+---
 
 ## Table of Contents <!-- omit from toc -->
 
@@ -156,14 +174,70 @@ SEND_BODY_TEXT=Hello,\n\nAttached is the latest batch of reviewed job files.
 Open the `.env` file and update the required fields:
 
 - email addresses
+   - Email account used to send job batches
+
+   ```
+   SENDER_EMAIL=example@gmail.com
+   ```
+
+   - Recipient email (where job batches are sent)
+
+   ```
+   RECIPIENT_EMAIL=example@gmail.com
+   ```
+
 - Gmail labels
-- folder settings
+
+**NOTE:** if you don't set these, the default values will be used, but need to exist in your gmail account
+  
+   ```
+   GMAIL_LABEL_SOURCE=
+   GMAIL_LABEL_PROCESSED_REVIEW=
+   GMAIL_LABEL_ERROR= 
+   ```
+
+- local folder settings
+
+**NOTE:** if you don't set these, the default values will be used. These folders are already set in the email_automation project.
+  
+   ```
+   LOCAL_PROCESSED_REVIEW_DIR=
+   LOCAL_READY_TO_SEND_DIR=
+   LOCAL_SENT_ARCHIVE_DIR=
+   LOCAL_ERROR_DIR=
+   ```
 
 See the [Configuration](#configuration) section for details.
 
 ---
 
 ### 6. Gmail API setup
+
+---
+
+#### Important (Read this before continuing)
+
+Most setup issues happen here.
+
+When working with the OAuth steps, in the Google Cloud console, there are a few things to remember. 
+
+Make sure to do the following:
+
+- Under APIs & Services, 
+  - then select OAuth consent screen, 
+  - Select **External** (not Internal)
+- Add your email under **Test Users**
+- Login using the SAME Gmail account you added
+
+If any of these are wrong, you will get:
+
+```
+403 access_denied
+```
+
+This is the most common setup issue.
+
+---
 
 #### Create OAuth Credentials (credentials.json)
 
@@ -176,24 +250,27 @@ To use the Gmail API, you must create an OAuth client and download a `credential
 
 2. Create or select a project
 
-3. Enable the Gmail API:
+3. Enable the Gmail API
    - Navigate to: APIs & Services → Library
    - Search for: Gmail API
    - Click “Enable”
 
-4. Configure OAuth Consent Screen:
+4. Configure OAuth Consent Screen
    - Go to: APIs & Services → OAuth consent screen
    - Choose **External**
    - Fill in required fields (App name, Email)
    - Save
 
-5. Create OAuth Client ID:
+5. Create OAuth Client ID
+
+   This step connects your Gmail account securely so the program can read labeled emails.
+
    - Go to: APIs & Services → Credentials
    - Click **Create Credentials → OAuth client ID**
    - Application type: **Desktop app**
    - Click Create
 
-6. Download credentials:
+6. Download credentials
    - Click the download icon
    - Save the file as:
 
@@ -469,21 +546,96 @@ This project is designed for a controlled local workflow with:
 
 ## Troubleshooting
 
-### Missing or invalid token
+<style>
+  /* Define a custom class for red text */
+  .error {
+    color: #FF0000;
+  }
 
-Run:
+  /* Style all Level 2 headers to be blue */
+  .solution {
+    color: green;
+  }
+</style>
+
+### <span class="error">403 access_denied</span>
+
+This usually means Google blocked your app.
+
+<span class="solution">Solution</span>
+
+Check:
+
+1. OAuth user type is set to **External**
+2. Your Gmail account name is added as a **Test User**
+3. You are logging in with that same Gmail account
+
+If unsure:
+- open auth in an incognito window
+- log in fresh
+
+---
+
+### <span class="error">No module named 'tzdata'</span>
+
+This is a tzdata error.
+
+<span class="solution">Solution</span>
+```bash
+python -m pip install tzdata
+```
+
+---
+
+### <span class="error">Missing or invalid token</span>
+
+The authorization token cannot be used.
+
+<span class="solution">Solution</span>
+
+Run the command to create a new token:
 
 ```bash
 python -m src auth
 ```
 
-### Gmail label not found
+---
 
-Make sure the label exists in Gmail exactly as configured.
+### <span class="error">Gmail label not found</span>
 
-### Email not sent
+<span class="solution">Solution</span>
 
-Check:
+The label must exist exactly as written.
+
+Example:
+
+```
+for_friend
+```
+
+Check spelling and capitalization.
+
+---
+
+### <span class="error">Auth worked but export fails</span>
+
+Usually means:
+timezone issue (tzdata)
+incorrect .env values
+
+<span class="solution">Solution</span>
+
+Check the values in the `.env` file for:
+- DISPLAY_TIMEZONE
+- label names
+
+---
+
+### <span class="error">Email not sent</span>
+
+<span class="solution">Solution</span>
+
+Check the values in the `.env` file for:
 
 - `SENDER_EMAIL`
 - `RECIPIENT_EMAIL`
@@ -491,13 +643,19 @@ Check:
 - `TEST_MODE`
 - Gmail API authorization
 
-### Nothing to zip
+---
+
+### <span class="error">### Nothing to zip</span>
+
+<span class="solution">Solution</span>
 
 Make sure your processed review folder contains exported files before running:
 
 ```bash
 python -m src send
 ```
+
+---
 
 ## Final note
 

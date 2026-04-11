@@ -13,34 +13,24 @@
 
 ## The Problem
 
-Processing job-related emails manually is inefficient, inconsistent, and difficult to scale.
+Handling job emails manually works at first, but breaks down pretty quickly.
 
-Typical workflow:
-- Emails reviewed one by one
-- Manual copy/paste into documents
-- Inconsistent file naming
-- No tracking of processed vs missed emails
+You end up copying content, renaming files, and trying to keep track of what’s already been processed.
 
-As volume increases, the process becomes:
-- slower
-- error-prone
-- difficult to audit
+At some point, it becomes hard to answer a simple question:
 
-There is no clear answer to:
-
-"What happened during this batch?"
+> "What happened during this batch?"
 
 ---
 
 ## The Impact
 
 Without structure:
-
-- Emails are skipped or duplicated
-- Files become inconsistent
-- Errors go unnoticed
-- Debugging requires manual investigation
-- No audit trail exists
+- Emails get skipped or duplicated.
+- File naming becomes inconsistent, especially across batches.
+- When something fails, you usually don’t notice until much later.
+- Debugging requires manual investigation.
+- No audit trail exists.
 
 ---
 

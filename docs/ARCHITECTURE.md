@@ -36,11 +36,11 @@ There is no clear answer to:
 
 Without structure:
 
-- Emails are skipped or duplicated
-- Files become inconsistent
-- Errors go unnoticed
-- Debugging requires manual investigation
-- No audit trail exists
+- Emails get skipped or duplicated.
+- File naming becomes inconsistent, especially across batches.
+- When something fails, you usually don’t notice until much later.
+- Debugging requires manual investigation.
+- No audit trail exists.
 
 ---
 

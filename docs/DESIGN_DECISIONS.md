@@ -13,7 +13,9 @@
 
 ## Why Batch Processing
 
-Emails are processed in batches instead of individually.
+Emails are processed in batches instead of one at a time.
+
+This makes it easier to track what happened, especially when something fails.
 
 This allows:
 - consistent execution
