@@ -1,5 +1,12 @@
 # Workflow <!-- omit from toc -->
 
+This is the actual flow the tool follows.
+
+You don’t need to run everything at once.
+Each step is separate on purpose.
+
+---
+
 ## Table of Contents <!-- omit from toc -->
 
 - [Step 0: Authenticate](#step-0-authenticate)
