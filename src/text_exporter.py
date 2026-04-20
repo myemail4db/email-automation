@@ -5,7 +5,6 @@ from src.text_filter import clean_email_body
 from src.utils.date_utils import format_email_date
 
 
-
 def build_email_header(subject, sender, date, status, format_type, file_name):
     line = "=" * 60
 
@@ -29,7 +28,6 @@ def build_email_header(subject, sender, date, status, format_type, file_name):
     return "\n".join(header_lines)
 
 
-
 def build_safe_stem(subject: str) -> str:
     fallback_prefix = config["naming"]["fallback_prefix"]
     max_length = config["naming"]["max_filename_length"]
@@ -37,7 +35,6 @@ def build_safe_stem(subject: str) -> str:
     safe_subject = "".join(c for c in subject if c.isalnum() or c in (" ", "_")).strip()
     safe_subject = safe_subject[:max_length].strip()
     return safe_subject or fallback_prefix
-
 
 
 def save_email_to_text(subject, sender, date, body, output_dir, status="processed_review", format_type="text"):
