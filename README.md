@@ -100,7 +100,7 @@ cd email-automation
 
 ---
 
-### 2. Create a virtual environment
+### 2. Create a virtual environment. You will stay in here the rest of the time.
 
 #### macOS / Linux
 
