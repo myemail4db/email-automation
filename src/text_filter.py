@@ -222,6 +222,7 @@ def clean_email_body(body: str, trim_thread: bool = False) -> str:
         cleaned_lines.append(normalized)
         previous_was_blank = False
 
+    # Final check for two-line reply marker in cleaned lines, to catch cases where noise lines are interspersed.
     text = "\n".join(cleaned_lines)
 
     # Clean bullet indentation.
@@ -237,4 +238,5 @@ def clean_email_body(body: str, trim_thread: bool = False) -> str:
     text = new_text
 
     return text.strip()
+
 
