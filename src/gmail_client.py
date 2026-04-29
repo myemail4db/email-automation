@@ -44,7 +44,7 @@ class GmailClient:
         labels = results.get("labels", [])
         return {label["name"]: label["id"] for label in labels}
 
-    def list_message_ids_by_label(self, label_name: str, max_results: int = 25) -> List[str]:
+    def list_message_ids_by_label(self, label_name: str, max_results: int = 30) -> List[str]:    # used to be 25
         label_map = self.get_label_map()
         label_id = label_map.get(label_name)
 
